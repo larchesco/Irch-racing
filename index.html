@@ -5,30 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Irch-racing | Official Online Game</title>
     <link rel="stylesheet" href="style.css">
-    
-    <!-- Найнадійніші відкриті інтернет-бібліотеки Firebase, які не блокуються -->
-    <script src="https://jsdelivr.net"></script>
-    <script src="https://jsdelivr.net"></script>
-    
-    <script>
-        let db = null;
-        // Функція примусового онлайн-підключення до бази Google
-        function connectGoogleBase() {
-            try {
-                const firebaseConfig = { 
-                    apiKey: "AIzaSyCpYFjRhLX6MOCgzUvTsQO19vPHfPtZiUU", 
-                    authDomain: "://firebaseapp.com", 
-                    projectId: "lrch-racing" 
-                };
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.firestore();
-                console.log("Firebase активовано! Світовий онлайн працює!");
-            } catch(e) {
-                console.log("Помилка зв'язку з сервером.");
-            }
-        }
-        connectGoogleBase();
-    </script>
 </head>
 <body>
 
@@ -66,7 +42,7 @@
         <div id="leaderboard-rows"></div>
     </div>
 
-    <!-- Примусово оновлюємо версію скрипта для браузера -->
-    <script src="script.js?v=5"></script>
+    <!-- Завантажуємо фінальний скрипт -->
+    <script src="script.js?v=6"></script>
 </body>
 </html>
