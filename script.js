@@ -1,15 +1,15 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyCpYFjRhLX6MOCgzUvTsQO19vPHfPtZiUU", authDomain: "://firebaseapp.com", projectId: "lrch-racing"
-};
-firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
+let db;
 const player = document.getElementById('player-car'); const gameZone = document.getElementById('game-zone');
 const scoreDisplay = document.getElementById('score'); const startBtn = document.getElementById('start-btn');
 const diffBox = document.getElementById('diff-box'); const gameOverScreen = document.getElementById('game-over-screen');
 const goResult = document.getElementById('go-result'); const lbRowsContainer = document.getElementById('leaderboard-rows');
+
+// Офіційні ігрові змінні винесені на самий початок (виправлення помилки 120)
 let playerX = 150; let score = 0; let gameInterval; let enemyInterval; let isGameRunning = false;
 let currentDifficulty = 'easy'; let baseEnemySpeed = 4; let baseSpawnRate = 1200;
 let enemySpeed = 4; let spawnRate = 1200; let lastDifficultyScore = 0; let hardClickCount = 0;
 const keys = { left: false, right: false }; let currentLang = 'en'; let playerNickname = ""; let playerEmail = "";
+
 const translations = {
     en: {
         title: "IRCH-RACING", scoreText: "SPEED SCORE", start: "START RACE", restart: "RESTART RACE",
@@ -24,6 +24,19 @@ const translations = {
         emailExists: "Email занят!", nameExists: "Никнейм занят!"
     }
 };
+
+// Виправлення помилки 4: Ініціалізуємо Firebase тільки після повного завантаження сторінки
+window.addEventListener('load', function() {
+    const firebaseConfig = {
+        apiKey: "AIzaSyCpYFjRhLX6MOCgzUvTsQO19vPHfPtZiUU",
+        authDomain: "://firebaseapp.com",
+        projectId: "lrch-racing"
+    };
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    checkPlayerOnlineAuth();
+});
+
 async function checkPlayerOnlineAuth() {
     playerEmail = localStorage.getItem('lrch_user_email'); playerNickname = localStorage.getItem('lrch_user_name');
     if (!playerEmail || !playerNickname) {
@@ -49,6 +62,7 @@ async function checkPlayerOnlineAuth() {
     updateLeaderboardDisplay();
 }
 async function updateLeaderboardDisplay() {
+    if (!db) return;
     lbRowsContainer.innerHTML = '';
     try {
         const snapshot = await db.collection(`records_${currentDifficulty}`).orderBy("score", "desc").limit(3).get();
@@ -62,7 +76,7 @@ async function updateLeaderboardDisplay() {
     } catch (e) { lbRowsContainer.innerHTML = `<div class="lb-row" style="justify-content: center; color: #646469;">Loading...</div>`; }
 }
 async function checkAndSaveRecord(finalScore) {
-    if (!playerNickname) return;
+    if (!playerNickname || !db) return;
     try {
         const snapshot = await db.collection(`records_${currentDifficulty}`).orderBy("score", "desc").limit(3).get();
         let isTopRecord = false; let records = []; snapshot.forEach(doc => records.push(doc.data()));
@@ -159,4 +173,3 @@ function endGame() {
     startBtn.innerText = translations[currentLang].restart; startBtn.style.display = 'block'; diffBox.style.display = 'flex';
     checkAndSaveRecord(score); hardClickCount = 0;
 }
-checkPlayerOnlineAuth();
