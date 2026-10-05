@@ -1,3 +1,13 @@
+// Автономна легка ініціалізація бази без зовнішніх залежностей
+let db = null;
+try {
+    const config = { apiKey: "AIzaSyCpYFjRhLX6MOCgzUvTsQO19vPHfPtZiUU", authDomain: "://firebaseapp.com", projectId: "lrch-racing" };
+    if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(config);
+        db = firebase.firestore();
+    }
+} catch(e) { console.log("Offline mode active"); }
+
 const player = document.getElementById('player-car'); const gameZone = document.getElementById('game-zone');
 const scoreDisplay = document.getElementById('score'); const startBtn = document.getElementById('start-btn');
 const diffBox = document.getElementById('diff-box'); const gameOverScreen = document.getElementById('game-over-screen');
@@ -12,46 +22,38 @@ const translations = {
     en: {
         title: "IRCH-RACING", scoreText: "SPEED SCORE", start: "START RACE", restart: "RESTART RACE",
         easy: "Easy", medium: "Medium", hard: "Hard", ultra: "ULTRA HARD 💀", goTitle: "GAME OVER", goScore: "Your Score: ",
-        lbTitle: "WORLD TOP 3", emptyLb: "No records yet", emailPrompt: "Enter your Email:", namePrompt: "Enter your Nickname:",
-        emailExists: "Email taken!", nameExists: "Nickname taken!"
+        lbTitle: "WORLD TOP 3", emptyLb: "No records yet", emailPrompt: "Enter your Email:", namePrompt: "Enter your Nickname:"
     },
     ru: {
         title: "ИГРА IRCH-RACING", scoreText: "ОЧКИ СКОРОСТИ", start: "СТАРТ ИГРЫ", restart: "РЕСТАРТ ИГРЫ",
         easy: "Легко", medium: "Средне", hard: "Сложно", ultra: "УЛЬТРА ХАРД 💀", goTitle: "ИГРА ОКОНЧЕНА", goScore: "Твой результат: ",
-        lbTitle: "МИРОВОЙ ТОП 3", emptyLb: "Еще нет рекордов", emailPrompt: "Введи свой Email:", namePrompt: "Введи свой Никнейм:",
-        emailExists: "Email занят!", nameExists: "Никнейм занят!"
+        lbTitle: "МИРОВОЙ ТОП 3", emptyLb: "Еще нет рекордов", emailPrompt: "Введи свой Email:", namePrompt: "Введи свой Никнейм:"
     }
 };
 
-async function checkPlayerOnlineAuth() {
-    playerEmail = localStorage.getItem('lrch_user_email'); playerNickname = localStorage.getItem('lrch_user_name');
-    if (!db) { playerNickname = "Local_Racer"; return; } // Безпечний режим, якщо Google заблоковано
-    
+function checkPlayerOnlineAuth() {
+    playerEmail = localStorage.getItem('lrch_user_email');
+    playerNickname = localStorage.getItem('lrch_user_name');
+
     if (!playerEmail || !playerNickname) {
-        let uniqueAuth = false;
-        while (!uniqueAuth) {
-            let emailInput = prompt(translations[currentLang].emailPrompt);
-            if (!emailInput || emailInput.trim() === "") emailInput = "guest" + Math.floor(Math.random() * 10000) + "@lrch.com";
-            emailInput = emailInput.trim().toLowerCase();
-            let nameInput = prompt(translations[currentLang].namePrompt);
-            if (!nameInput || nameInput.trim() === "") nameInput = "Racer_" + Math.floor(Math.random() * 900 + 100);
-            nameInput = nameInput.trim().substring(0, 12);
-            const emailCheck = await db.collection("users").where("email", "==", emailInput).get();
-            const nameCheck = await db.collection("users").where("name", "==", nameInput).get();
-            if (!emailCheck.empty) { alert(translations[currentLang].emailExists); }
-            else if (!nameCheck.empty) { alert(translations[currentLang].nameExists); }
-            else {
-                await db.collection("users").add({ email: emailInput, name: nameInput });
-                localStorage.setItem('lrch_user_email', emailInput); localStorage.setItem('lrch_user_name', nameInput);
-                playerEmail = emailInput; playerNickname = nameInput; uniqueAuth = true;
-            }
-        }
+        playerEmail = prompt(translations[currentLang].emailPrompt);
+        if (!playerEmail || playerEmail.trim() === "") playerEmail = "player@mail.com";
+        
+        playerNickname = prompt(translations[currentLang].namePrompt);
+        if (!playerNickname || playerNickname.trim() === "") playerNickname = "Racer_" + Math.floor(Math.random() * 800 + 100);
+        playerNickname = playerNickname.trim().substring(0, 12);
+
+        localStorage.setItem('lrch_user_email', playerEmail);
+        localStorage.setItem('lrch_user_name', playerNickname);
     }
     updateLeaderboardDisplay();
 }
 async function updateLeaderboardDisplay() {
     lbRowsContainer.innerHTML = '';
-    if (!db) { lbRowsContainer.innerHTML = `<div class="lb-row" style="justify-content: center; color: #646469;">Offline Mode</div>`; return; }
+    if (!db) { 
+        lbRowsContainer.innerHTML = `<div class="lb-row" style="justify-content: center; color: #646469;">Local Top: ${playerNickname || 'Racer'}</div>`; 
+        return; 
+    }
     try {
         const snapshot = await db.collection(`records_${currentDifficulty}`).orderBy("score", "desc").limit(3).get();
         if (snapshot.empty) { lbRowsContainer.innerHTML = `<div class="lb-row" style="justify-content: center; color: #646469;">${translations[currentLang].emptyLb}</div>`; return; }
@@ -66,13 +68,8 @@ async function updateLeaderboardDisplay() {
 async function checkAndSaveRecord(finalScore) {
     if (!playerNickname || !db) return;
     try {
-        const snapshot = await db.collection(`records_${currentDifficulty}`).orderBy("score", "desc").limit(3).get();
-        let isTopRecord = false; let records = []; snapshot.forEach(doc => records.push(doc.data()));
-        if (records.length < 3 || finalScore > records[records.length - 1].score) isTopRecord = true;
-        if (isTopRecord) {
-            await db.collection(`records_${currentDifficulty}`).add({ name: playerNickname, score: finalScore, email: playerEmail, date: new Date() });
-            updateLeaderboardDisplay();
-        }
+        await db.collection(`records_${currentDifficulty}`).add({ name: playerNickname, score: finalScore, email: playerEmail, date: new Date() });
+        updateLeaderboardDisplay();
     } catch (e) { console.log("Error: ", e); }
 }
 function setLanguage(lang) {
@@ -136,7 +133,7 @@ function startGame() {
 function spawnSystem() {
     if (!isGameRunning) return; createEnemy();
     let secondCarChance = currentDifficulty === 'ultra' ? 0.95 : (currentDifficulty === 'hard' ? 0.8 : (currentDifficulty === 'medium' ? 0.5 : 0.3));
-    let secondCarScoreTrigger = currentDifficulty === 'ultra' ? 0 : (currentDifficulty === 'hard' * 100 ? 100 : (currentDifficulty === 'medium' ? 250 : 400));
+    let secondCarScoreTrigger = currentDifficulty === 'ultra' ? 0 : (currentDifficulty === 'hard' ? 100 : (currentDifficulty === 'medium' ? 250 : 400));
     if (score >= secondCarScoreTrigger && Math.random() < secondCarChance) setTimeout(createEnemy, 120);
     let thirdCarChance = currentDifficulty === 'ultra' ? 0.75 : (currentDifficulty === 'hard' ? 0.5 : 0.2);
     let thirdCarScoreTrigger = currentDifficulty === 'ultra' ? 50 : 600;
