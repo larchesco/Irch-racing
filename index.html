@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Irch-racing | Official Online Game</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Подключаем официальные облачные библиотеки Google Firebase -->
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+</head>
+<body>
+
+    <!-- Переключатель языков -->
+    <div class="lang-switcher">
+        <button id="btn-en" class="lang-btn active" onclick="setLanguage('en')">EN</button>
+        <button id="btn-ru" class="lang-btn" onclick="setLanguage('ru')">RU</button>
+    </div>
+
+    <!-- Новое официальное название игры -->
+    <h1 id="game-title">IRCH-RACING</h1>
+    <div class="score-board"><span id="score-text">SPEED SCORE</span>: <span id="score">0</span></div>
+
+    <!-- Выбор сложности перед игрой -->
+    <div class="difficulty-container" id="diff-box">
+        <button id="diff-easy" class="diff-btn active" onclick="selectDifficulty('easy')">Easy</button>
+        <button id="diff-medium" class="diff-btn" onclick="selectDifficulty('medium')">Medium</button>
+        <button id="diff-hard" class="diff-btn" onclick="selectDifficulty('hard')">Hard</button>
+    </div>
+
+    <!-- Игровая зона -->
+    <div id="game-zone">
+        <div id="player-car"></div>
+        
+        <div id="game-over-screen">
+            <h2 id="go-title">GAME OVER</h2>
+            <p id="go-result">Your Score: 0</p>
+        </div>
+    </div>
+
+    <button id="start-btn" onclick="startGame()">START RACE</button>
+
+    <!-- Кнопки управления для телефонов -->
+    <div class="controls">
+        <button class="control-btn" id="btn-left">◀</button>
+        <button class="control-btn" id="btn-right">▶</button>
+    </div>
+
+    <!-- СВЕТОВАЯ ВСЕМИРНАЯ ТАБЛИЦА РЕКОРДОВ -->
+    <div class="leaderboard-container">
+        <div class="lb-title" id="lb-title-text">WORLD TOP 3</div>
+        <div id="leaderboard-rows">
+            <!-- Сюда скрипт сам добавит строки лидеров из интернета -->
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
