@@ -1,7 +1,3 @@
-// Миттєве підключення хмари Google Firebase на самому початку файлу
-const firebaseConfig = { apiKey: "AIzaSyCpYFjRhLX6MOCgzUvTsQO19vPHfPtZiUU", authDomain: "://firebaseapp.com", projectId: "lrch-racing" };
-firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
-
 const player = document.getElementById('player-car'); const gameZone = document.getElementById('game-zone');
 const scoreDisplay = document.getElementById('score'); const startBtn = document.getElementById('start-btn');
 const diffBox = document.getElementById('diff-box'); const gameOverScreen = document.getElementById('game-over-screen');
@@ -29,6 +25,8 @@ const translations = {
 
 async function checkPlayerOnlineAuth() {
     playerEmail = localStorage.getItem('lrch_user_email'); playerNickname = localStorage.getItem('lrch_user_name');
+    if (!db) { playerNickname = "Local_Racer"; return; } // Безпечний режим, якщо Google заблоковано
+    
     if (!playerEmail || !playerNickname) {
         let uniqueAuth = false;
         while (!uniqueAuth) {
@@ -53,6 +51,7 @@ async function checkPlayerOnlineAuth() {
 }
 async function updateLeaderboardDisplay() {
     lbRowsContainer.innerHTML = '';
+    if (!db) { lbRowsContainer.innerHTML = `<div class="lb-row" style="justify-content: center; color: #646469;">Offline Mode</div>`; return; }
     try {
         const snapshot = await db.collection(`records_${currentDifficulty}`).orderBy("score", "desc").limit(3).get();
         if (snapshot.empty) { lbRowsContainer.innerHTML = `<div class="lb-row" style="justify-content: center; color: #646469;">${translations[currentLang].emptyLb}</div>`; return; }
@@ -65,7 +64,7 @@ async function updateLeaderboardDisplay() {
     } catch (e) { lbRowsContainer.innerHTML = `<div class="lb-row" style="justify-content: center; color: #646469;">Loading...</div>`; }
 }
 async function checkAndSaveRecord(finalScore) {
-    if (!playerNickname) return;
+    if (!playerNickname || !db) return;
     try {
         const snapshot = await db.collection(`records_${currentDifficulty}`).orderBy("score", "desc").limit(3).get();
         let isTopRecord = false; let records = []; snapshot.forEach(doc => records.push(doc.data()));
@@ -137,7 +136,7 @@ function startGame() {
 function spawnSystem() {
     if (!isGameRunning) return; createEnemy();
     let secondCarChance = currentDifficulty === 'ultra' ? 0.95 : (currentDifficulty === 'hard' ? 0.8 : (currentDifficulty === 'medium' ? 0.5 : 0.3));
-    let secondCarScoreTrigger = currentDifficulty === 'ultra' ? 0 : (currentDifficulty === 'hard' ? 100 : (currentDifficulty === 'medium' ? 250 : 400));
+    let secondCarScoreTrigger = currentDifficulty === 'ultra' ? 0 : (currentDifficulty === 'hard' * 100 ? 100 : (currentDifficulty === 'medium' ? 250 : 400));
     if (score >= secondCarScoreTrigger && Math.random() < secondCarChance) setTimeout(createEnemy, 120);
     let thirdCarChance = currentDifficulty === 'ultra' ? 0.75 : (currentDifficulty === 'hard' ? 0.5 : 0.2);
     let thirdCarScoreTrigger = currentDifficulty === 'ultra' ? 50 : 600;
