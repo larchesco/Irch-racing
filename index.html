@@ -6,25 +6,28 @@
     <title>Irch-racing | Official Online Game</title>
     <link rel="stylesheet" href="style.css">
     
-    <!-- Хмарні бібліотеки Firebase -->
-    <script src="https://cloudflare.com"></script>
-    <script src="https://cloudflare.com"></script>
+    <!-- Найнадійніші відкриті інтернет-бібліотеки Firebase, які не блокуються -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://jsdelivr.net"></script>
     
     <script>
-        // Ініціалізуємо базу прямо тут, щоб script.js не видавав помилок
         let db = null;
-        try {
-            const firebaseConfig = { 
-                apiKey: "AIzaSyCpYFjRhLX6MOCgzUvTsQO19vPHfPtZiUU", 
-                authDomain: "://firebaseapp.com", 
-                projectId: "lrch-racing" 
-            };
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.firestore();
-            console.log("Firebase connecté успешно!");
-        } catch(e) {
-            console.log("Firebase заблоковано блокирувальником. Гра працює локально!");
+        // Функція примусового онлайн-підключення до бази Google
+        function connectGoogleBase() {
+            try {
+                const firebaseConfig = { 
+                    apiKey: "AIzaSyCpYFjRhLX6MOCgzUvTsQO19vPHfPtZiUU", 
+                    authDomain: "://firebaseapp.com", 
+                    projectId: "lrch-racing" 
+                };
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                console.log("Firebase активовано! Світовий онлайн працює!");
+            } catch(e) {
+                console.log("Помилка зв'язку з сервером.");
+            }
         }
+        connectGoogleBase();
     </script>
 </head>
 <body>
@@ -63,7 +66,7 @@
         <div id="leaderboard-rows"></div>
     </div>
 
-    <!-- Завантажуємо нову версію скрипта -->
-    <script src="script.js?v=3"></script>
+    <!-- Примусово оновлюємо версію скрипта для браузера -->
+    <script src="script.js?v=5"></script>
 </body>
 </html>
